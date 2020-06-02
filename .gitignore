@@ -3,3 +3,6 @@ instance/
 
 # Python Runtime Environment
 __pycache__/
+
+# Python Virtual Environments
+venv/
