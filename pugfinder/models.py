@@ -8,15 +8,17 @@ class User(Base):
     id = Column(Integer, index=True, primary_key=True)
     username = Column(String(26), index=True, unique=True)
     email = Column(String(120), unique=True)
-    hashed_pass = Column(String(128))
+    password = Column(String(128))
+    salt = Column(String(29))
     preferred_role = Column(String(10))
     curr_match_id = Column(Integer, ForeignKey('matches.id'))
 
     def __init__(self, username=None, email=None,
-                 hashed_pass=None, preferred_role=None):
+                 password=None, salt=None, preferred_role=None):
         self.username = username
         self.email = email
-        self.hashed_pass = hashed_pass
+        self.password = password
+        self.salt = salt
         self.preferred_role = preferred_role
 
     def __repr__(self):
