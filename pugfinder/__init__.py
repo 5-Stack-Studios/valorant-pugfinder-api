@@ -44,11 +44,11 @@ def user():
             # Add password security measures
             raw_pass = data["password"]
             salt = bcrypt.gensalt()
-            hashed_pass = bcrypt.hashpw(raw_pass, salt).encode('utf-8')
+            hashed_pass = bcrypt.hashpw(raw_pass, salt).decode('utf-8')
 
             user = User(username=data['username'],
                         password=hashed_pass,
-                        salt=salt,
+                        salt=salt.decode('utf-8'),
                         email=data['email'])
 
         # TODO: Construct JWT and send back
