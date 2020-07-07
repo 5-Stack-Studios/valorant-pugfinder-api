@@ -9,6 +9,7 @@ class User(Base):
     username = Column(String(26), index=True, unique=True)
     email = Column(String(120), unique=True)
     hashed_pass = Column(String(128))
+    # TODO: add salt
     preferred_role = Column(String(10))
     curr_match_id = Column(Integer, ForeignKey('matches.id'))
 

@@ -1,4 +1,5 @@
 import os
+import random
 
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
@@ -6,6 +7,18 @@ from flask_socketio import SocketIO, emit
 from pugfinder.database import init_db
 from pugfinder.models import User
 
+AGENTS = [ "breach",
+  "brimstone",
+  "cypher",
+  "jett",
+  "omen",
+  "phoenix",
+  "raze",
+  "reyna",
+  "sage",
+  "sova",
+  "viper"
+]
 
 # create and configure the app
 app = Flask(__name__, instance_relative_config=True)
@@ -66,11 +79,9 @@ def create_lobby(data):
             'id': cnt,
             'owner': data['owner'],
             'map': data['map'],
-            'team1': [],
-            'team2': [],
-            'queue': {
-                
-            }
+            'team1': [{'name': 'pattyjogal', 'selectedRole': random.choice(AGENTS)} for i in range(5)],
+            'team2': [{'name': 'pattyjogal', 'selectedRole': random.choice(AGENTS)} for i in range(5)],
+            'queue': {agent: [] for agent in AGENTS}
         }
     }, broadcast=True)
 
