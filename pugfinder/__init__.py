@@ -61,6 +61,11 @@ def user():
         # TODO: Return list of users
         pass
 
+@app.route('/login', methods=["POST"])
+def login():
+    data = request.get_json()
+    required_params = set("username", "password")
+    
 
 
 # Temporary measure; should eventually be replaced with
