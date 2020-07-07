@@ -1,5 +1,6 @@
 import os
 import random
+import bcrypt
 
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
@@ -52,10 +53,17 @@ def user():
     if request.method == 'POST':
         data = request.get_json()
         required_params = set("username", "email", "password")
-        if len(set(data.keys()) & required_params) != len(required_params):
+        if set(data.keys()) == required_params:
+            # Add password security measures
+            raw_pass = data["password"]
+            salt = bcrypt.gensalt()
+            hashed_pass = bcrypt.hashpw(raw_pass, salt).decode('utf-8')
+
             user = User(username=data['username'],
-                        hashed_pass="", # TODO: Bcrypt
+                        password=hashed_pass,
+                        salt=salt.decode('utf-8'),
                         email=data['email'])
+
         # TODO: Construct JWT and send back
     elif request.method == 'GET':
         # TODO: Return list of users
@@ -65,7 +73,7 @@ def user():
 def login():
     data = request.get_json()
     required_params = set("username", "password")
-    
+
 
 
 # Temporary measure; should eventually be replaced with
