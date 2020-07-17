@@ -1,26 +1,16 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-from flask import Flask
+import os
 
-engine = create_engine('sqlite:////tmp/test.db', convert_unicode=True)
-db_session = scoped_session(sessionmaker(autocommit=False,
-                                         autoflush=False,
-                                         bind=engine))
-Base = declarative_base()
-Base.query = db_session.query_property()
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 
+server = os.environ['MYSQL_SERVER']
+username = os.environ['MYSQL_USERNAME']
+password = os.environ['MYSQL_PASSWORD']
+db = os.environ['MYSQL_DB']
 
-def init_db():
-    # import all modules here that might define models so that
-    # they will be registered properly on the metadata.  Otherwise
-    # you will have to import them first before calling init_db()
-    import pugfinder.models
-    Base.metadata.create_all(bind=engine)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://{username}:{password}@{server}/{db}'
 
-
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    db_session.remove()
+db = SQLAlchemy(app)

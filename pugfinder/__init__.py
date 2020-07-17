@@ -1,12 +1,14 @@
 import os
 import random
 import bcrypt
+import uuid
+import jwt
 
-from flask import Flask, request
+from flask import Flask, request, abort, jsonify
 from flask_socketio import SocketIO, emit
 
-from pugfinder.database import init_db
 from pugfinder.models import User
+from pugfinder.database import db
 
 AGENTS = [ "breach",
   "brimstone",
@@ -41,38 +43,65 @@ try:
 except OSError:
     pass
 
-init_db()
+def create_session_token(user):
+    return jwt.encode(
+                {
+                    "user": {
+                    "id": str(user.id),
+                    "name": user.username}
+                }, app.config.get("SECRET_KEY"))
 
 # a simple page that says hello
 @app.route('/api')
 def hello():
     return 'Hello, World!'
 
-@app.route('/user', methods=['GET', 'POST'])
+@app.route('/api/user', methods=['GET', 'POST'])
 def user():
     if request.method == 'POST':
         data = request.get_json()
-        required_params = set("username", "email", "password")
+        required_params = {"username", "email", "password"}
         if set(data.keys()) == required_params:
             # Add password security measures
-            raw_pass = data["password"]
+            raw_pass = data["password"].encode()
             salt = bcrypt.gensalt()
             hashed_pass = bcrypt.hashpw(raw_pass, salt).decode('utf-8')
-
             user = User(username=data['username'],
                         password=hashed_pass,
                         salt=salt.decode('utf-8'),
-                        email=data['email'])
+                        email=data['email'],
+                        id = str(uuid.uuid4()))
 
-        # TODO: Construct JWT and send back
+            db.session.add(user)
+            db.session.commit()
+
+            token = jwt.encode(
+                {
+                    "user": {
+                    "id": str(user.id),
+                    "name": user.username}
+                }, app.config.get("SECRET_KEY"))
+
+            return jsonify({'token': token.decode()})
     elif request.method == 'GET':
         # TODO: Return list of users
         pass
 
-@app.route('/login', methods=["POST"])
+@app.route('/api/login', methods=["POST"])
 def login():
     data = request.get_json()
-    required_params = set("username", "password")
+    required_params = {"email", "password"}
+    if set(data.keys()) == required_params:
+        user = User.query.filter_by(email=data["email"]).first()
+        if user and bcrypt.checkpw(data["password"].encode(), user.password.encode()):
+            # Authenticated
+            return jsonify({
+                'token': create_session_token(user).decode('utf-8')
+            })
+        else:
+            # Access denied
+            abort(401)
+    abort(400)
 
 
 
